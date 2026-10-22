@@ -1,0 +1,752 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflex Rush | Challenge Mode</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --green: #67f5c1;
+  --panel: #151d33;
+  --muted: #aab5d0;
+}
+
+body {
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at top, #26385f, #090d19 65%);
+  color: #f5f7ff;
+  font-family: Arial, sans-serif;
+}
+
+.game {
+  width: 100%;
+  max-width: 650px;
+  padding: 30px 24px;
+  border: 1px solid #344362;
+  border-radius: 24px;
+  background: var(--panel);
+  box-shadow: 0 25px 80px #0008;
+  animation: enter 0.5s ease both;
+}
+
+@keyframes enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 4px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: clamp(34px, 7vw, 48px);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+h1 span { color: var(--green); }
+
+.subtitle {
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+
+.round-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.round-header strong { color: var(--green); }
+
+.progress {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.progress span {
+  height: 7px;
+  border-radius: 8px;
+  background: #303b55;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.progress span.done { background: var(--green); }
+
+.progress span.current {
+  background: #a78bfa;
+  transform: scaleY(1.5);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat {
+  padding: 13px 8px;
+  text-align: center;
+  background: #202a43;
+  border: 1px solid #303e5c;
+  border-radius: 14px;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  color: var(--green);
+  font-size: clamp(19px, 4vw, 25px);
+  font-weight: bold;
+}
+
+#reactionBox {
+  min-height: 205px;
+  padding: 22px 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  border: 1px solid #394766;
+  border-radius: 18px;
+  background: #202a43;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+#reactionBox h2 {
+  font-size: clamp(23px, 5vw, 32px);
+}
+
+#reactionBox p {
+  color: #d0d8ea;
+  line-height: 1.6;
+}
+
+#reactionBox.countdown {
+  background: #302747;
+  border-color: #a78bfa;
+}
+
+.count-number {
+  color: #c4b5fd;
+  font-size: 82px;
+  font-weight: 900;
+  animation: pop 0.6s ease both;
+  text-shadow: 0 0 30px #a78bfa77;
+}
+
+@keyframes pop {
+  0% { opacity: 0; transform: scale(1.7); }
+  70% { opacity: 1; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+#reactionBox.waiting { background: #50331e; }
+
+#reactionBox.go {
+  background: #087f5b;
+  border-color: var(--green);
+  box-shadow: 0 0 35px #21e6a355;
+  animation: pulse 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  to { box-shadow: 0 0 45px #21e6a377; }
+}
+
+#reactionBox.early {
+  background: #812638;
+  border-color: #ff647c;
+}
+
+#reactionBox.result {
+  animation: resultPop 0.4s ease both;
+}
+
+@keyframes resultPop {
+  from { transform: scale(0.94); opacity: 0.5; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+button {
+  width: 100%;
+  padding: 15px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--green);
+  color: #09131c;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+button:hover:not(:disabled) {
+  background: #a0ffdf;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.tools {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.tools button {
+  padding: 11px;
+  color: #dce5fa;
+  background: #27334e;
+  border: 1px solid #3b4967;
+  font-size: 12px;
+}
+
+.tools button.active {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+#message {
+  min-height: 24px;
+  margin-top: 15px;
+  color: #b9c5de;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.results {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 15px;
+  background: #202a43;
+  animation: enter 0.45s ease both;
+}
+
+.results h2 {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.results .summary {
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.round-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 2px;
+  border-bottom: 1px solid #35415c;
+  font-size: 14px;
+}
+
+.round-row:last-child { border-bottom: none; }
+
+.round-row span { color: var(--muted); }
+.round-row strong { color: var(--green); }
+
+.results .overall {
+  margin-top: 15px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #3d6d61;
+  border-radius: 12px;
+  background: #14382f;
+}
+
+.overall small {
+  display: block;
+  color: #b5dccc;
+  margin-bottom: 7px;
+}
+
+.overall strong {
+  color: var(--green);
+  font-size: 32px;
+}
+
+.hidden { display: none !important; }
+
+.footer {
+  color: #71809f;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 3px;
+  margin-top: 20px;
+}
+
+@media (max-width: 420px) {
+  .game { padding: 24px 15px; }
+  .round-header { font-size: 11px; }
+}
+</style>
+</head>
+
+<body>
+<main class="game">
+  <div class="logo">THE ARCADE CHALLENGE</div>
+  <h1>⚡ Reflex <span>Rush</span></h1>
+  <p class="subtitle">
+    Five rounds. One final average.<br>
+    Can you beat your best?
+  </p>
+
+  <div class="round-header">
+    <span id="roundLabel">ROUND 0 OF 5</span>
+    <strong id="averageLabel">Average: -- ms</strong>
+  </div>
+
+  <div class="progress" id="progress">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-label">CURRENT ROUND</div>
+      <div class="stat-value" id="lastScore">-- ms</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">BEST AVERAGE</div>
+      <div class="stat-value" id="bestScore">-- ms</div>
+    </div>
+  </section>
+
+  <section id="reactionBox" role="button" tabindex="0"
+           aria-label="Reaction test area">
+    <h2>Ready, speedster?</h2>
+    <p>Complete five rounds to reveal your results.</p>
+  </section>
+
+  <button id="startBtn">Start 5-Round Challenge ⚡</button>
+
+  <div class="tools">
+    <button id="soundBtn" class="active" aria-pressed="true">
+      🔊 Sound: ON
+    </button>
+    <button id="resetBtn">↻ Reset Best Average</button>
+  </div>
+
+  <p id="message" aria-live="polite">
+    Wait for green, then click as fast as you can.
+  </p>
+
+  <section id="results" class="results hidden" aria-live="polite"></section>
+
+  <div class="footer">FOCUS · REACT · REPEAT</div>
+</main>
+
+<script>
+const box = document.getElementById("reactionBox");
+const startBtn = document.getElementById("startBtn");
+const lastScore = document.getElementById("lastScore");
+const bestScore = document.getElementById("bestScore");
+const averageLabel = document.getElementById("averageLabel");
+const roundLabel = document.getElementById("roundLabel");
+const message = document.getElementById("message");
+const results = document.getElementById("results");
+const progressBars = [...document.querySelectorAll("#progress span")];
+const soundBtn = document.getElementById("soundBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+const TOTAL_ROUNDS = 5;
+
+let state = "ready";
+let timer = null;
+let signalTime = 0;
+let roundNumber = 0;
+let scores = [];
+let bestAverage = null;
+let soundOn = true;
+let audio = null;
+
+try {
+  const saved = localStorage.getItem("reflexRushBestAverage");
+  if (saved !== null && Number.isFinite(Number(saved))) {
+    bestAverage = Number(saved);
+    bestScore.textContent = bestAverage + " ms";
+  }
+} catch (error) {
+  console.log("Best-score storage is unavailable.");
+}
+
+function playTone(frequency, duration = 0.12, type = "sine", volume = 0.07) {
+  if (!soundOn) return;
+
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === "suspended") audio.resume();
+
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, audio.currentTime);
+    gain.gain.setValueAtTime(volume, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+      0.001, audio.currentTime + duration
+    );
+
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + duration);
+  } catch (error) {
+    console.log("Audio is unavailable.");
+  }
+}
+
+function stopTimer() {
+  clearTimeout(timer);
+  clearInterval(timer);
+  timer = null;
+}
+
+function showBox(className, heading, description) {
+  box.className = className;
+  box.replaceChildren();
+
+  const title = document.createElement("h2");
+  title.textContent = heading;
+
+  const detail = document.createElement("p");
+  detail.textContent = description;
+
+  box.append(title, detail);
+}
+
+function showCountdown(number) {
+  box.className = "countdown";
+  box.replaceChildren();
+
+  const numberElement = document.createElement("div");
+  numberElement.className = "count-number";
+  numberElement.textContent = number;
+
+  const detail = document.createElement("p");
+  detail.textContent = "Get ready...";
+
+  box.append(numberElement, detail);
+  playTone(number === 1 ? 660 : 440);
+}
+
+function updateProgress() {
+  progressBars.forEach((bar, index) => {
+    bar.className = "";
+
+    if (index < scores.length) bar.classList.add("done");
+    else if (index === roundNumber - 1 && state !== "finished") {
+      bar.classList.add("current");
+    }
+  });
+}
+
+function updateStats() {
+  roundLabel.textContent = `ROUND ${roundNumber} OF ${TOTAL_ROUNDS}`;
+
+  const average = scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : null;
+
+  averageLabel.textContent = average === null
+    ? "Average: -- ms"
+    : `Average: ${average} ms`;
+
+  updateProgress();
+}
+
+function startChallenge() {
+  stopTimer();
+  roundNumber = 0;
+  scores = [];
+
+  lastScore.textContent = "-- ms";
+  averageLabel.textContent = "Average: -- ms";
+  results.classList.add("hidden");
+  results.replaceChildren();
+
+  nextRound();
+}
+
+function nextRound() {
+  if (scores.length === TOTAL_ROUNDS) {
+    finishChallenge();
+    return;
+  }
+
+  roundNumber = scores.length + 1;
+  state = "countdown";
+  updateStats();
+
+  startBtn.disabled = true;
+  startBtn.textContent = "Get Ready...";
+  message.textContent = `Round ${roundNumber}: focus and prepare!`;
+
+  let count = 3;
+  showCountdown(count);
+
+  timer = setInterval(() => {
+    count--;
+
+    if (count > 0) {
+      showCountdown(count);
+    } else {
+      stopTimer();
+      beginWaiting();
+    }
+  }, 800);
+}
+
+function beginWaiting() {
+  state = "waiting";
+  showBox("waiting", "🟠 Wait for green...", "Don't click too early!");
+  message.textContent = "The green signal will appear at a random time.";
+
+  const delay = 1500 + Math.random() * 3500;
+
+  timer = setTimeout(() => {
+    timer = null;
+    state = "go";
+    signalTime = performance.now();
+
+    showBox("go", "🟢 CLICK NOW!", "Click this box immediately!");
+    startBtn.disabled = false;
+    startBtn.textContent = "CLICK!";
+    message.textContent = `Round ${roundNumber}: GO!`;
+    playTone(880, 0.3, "sine", 0.1);
+  }, delay);
+}
+
+function handleReaction() {
+  if (state === "countdown") {
+    stopTimer();
+    finishEarly("Too early!", "Wait for the green signal.");
+    return;
+  }
+
+  if (state === "waiting") {
+    stopTimer();
+    finishEarly("False start!", "Wait until the box turns green.");
+    return;
+  }
+
+  if (state !== "go") return;
+
+  const time = Math.round(performance.now() - signalTime);
+  state = "roundResult";
+  scores.push(time);
+
+  lastScore.textContent = time + " ms";
+  showBox("result", `⚡ ${time} ms`, getFeedback(time));
+
+  playTone(600, 0.12);
+  setTimeout(() => playTone(900, 0.16), 100);
+
+  updateStats();
+  startBtn.disabled = false;
+
+  if (scores.length < TOTAL_ROUNDS) {
+    startBtn.textContent = `Next Round (${scores.length + 1}/${TOTAL_ROUNDS})`;
+    message.textContent = `Round ${scores.length} complete! Keep going.`;
+  } else {
+    startBtn.textContent = "See Final Results 🏆";
+    message.textContent = "All five rounds complete!";
+  }
+}
+
+function finishEarly(heading, description) {
+  state = "early";
+  showBox("early", `❌ ${heading}`, description);
+  startBtn.disabled = false;
+  startBtn.textContent = "Retry This Round";
+  message.textContent = `Round ${roundNumber} wasn't counted. Try again!`;
+  playTone(180, 0.3, "sawtooth", 0.06);
+}
+
+function finishChallenge() {
+  state = "finished";
+  stopTimer();
+
+  const total = scores.reduce((sum, score) => sum + score, 0);
+  const average = Math.round(total / TOTAL_ROUNDS);
+  const fastest = Math.min(...scores);
+  const slowest = Math.max(...scores);
+
+  const isNewBest = bestAverage === null || average < bestAverage;
+
+  if (isNewBest) {
+    bestAverage = average;
+    bestScore.textContent = average + " ms";
+
+    try {
+      localStorage.setItem("reflexRushBestAverage", String(bestAverage));
+    } catch (error) {
+      console.log("Could not save best average.");
+    }
+  }
+
+  showBox("result", "🏆 Challenge Complete!", getFeedback(average));
+  roundLabel.textContent = "ALL 5 ROUNDS COMPLETE";
+  averageLabel.textContent = `Average: ${average} ms`;
+  updateProgress();
+
+  startBtn.disabled = false;
+  startBtn.textContent = "Play Again ↻";
+
+  message.textContent = isNewBest
+    ? "✨ New personal best average!"
+    : "Challenge complete! Can you beat your average?";
+
+  results.replaceChildren();
+  results.classList.remove("hidden");
+
+  const title = document.createElement("h2");
+  title.textContent = isNewBest ? "🏆 New Record!" : "📊 Your Results";
+
+  const summary = document.createElement("p");
+  summary.className = "summary";
+  summary.textContent =
+    `Five rounds completed. Fastest: ${fastest} ms · Slowest: ${slowest} ms`;
+
+  results.append(title, summary);
+
+  scores.forEach((score, index) => {
+    const row = document.createElement("div");
+    row.className = "round-row";
+
+    const label = document.createElement("span");
+    label.textContent = `Round ${index + 1}`;
+
+    const value = document.createElement("strong");
+    value.textContent = `${score} ms`;
+
+    row.append(label, value);
+    results.append(row);
+  });
+
+  const overall = document.createElement("div");
+  overall.className = "overall";
+
+  const overallLabel = document.createElement("small");
+  overallLabel.textContent = "YOUR AVERAGE REACTION TIME";
+
+  const overallValue = document.createElement("strong");
+  overallValue.textContent = `${average} ms`;
+
+  overall.append(overallLabel, overallValue);
+  results.append(overall);
+
+  playTone(660, 0.15);
+  setTimeout(() => playTone(880, 0.15), 150);
+  setTimeout(() => playTone(1100, 0.25), 300);
+}
+
+function getFeedback(time) {
+  if (time < 200) return "Lightning fast! Impressive reflexes.";
+  if (time < 300) return "Great speed! Keep sharpening those reflexes.";
+  if (time < 400) return "Nice work! Can you beat that?";
+  return "Keep practising. Your next run could be faster!";
+}
+
+startBtn.addEventListener("click", () => {
+  if (state === "go") {
+    handleReaction();
+  } else if (state === "countdown" || state === "waiting") {
+    return;
+  } else if (state === "roundResult") {
+    if (scores.length === TOTAL_ROUNDS) {
+      finishChallenge();
+    } else {
+      nextRound();
+    }
+  } else if (state === "finished") {
+    startChallenge();
+  } else {
+    // A false start retries the current round without recording a score.
+    if (state === "early") {
+      state = "ready";
+      nextRound();
+    } else {
+      startChallenge();
+    }
+  }
+});
+
+box.addEventListener("click", handleReaction);
+
+box.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    handleReaction();
+  }
+});
+
+soundBtn.addEventListener("click", () => {
+  soundOn = !soundOn;
+  soundBtn.textContent = soundOn ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+  soundBtn.classList.toggle("active", soundOn);
+  soundBtn.setAttribute("aria-pressed", String(soundOn));
+
+  if (soundOn) playTone(660);
+});
+
+resetBtn.addEventListener("click", () => {
+  bestAverage = null;
+  bestScore.textContent = "-- ms";
+
+  try {
+    localStorage.removeItem("reflexRushBestAverage");
+  } catch (error) {
+    console.log("Could not reset saved average.");
+  }
+
+  message.textContent = "Best average reset. Set a new record!";
+  playTone(440, 0.1);
+});
+</script>
+</body>
+</html>
